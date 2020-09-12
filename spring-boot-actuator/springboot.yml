@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: springboot
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: springboot
+  template:
+    metadata:
+      labels:
+        app: springboot
+    spec:
+      nodeSelector:
+        "beta.kubernetes.io/os": linux
+      containers:
+      - name: springboot
+        image: k8spring
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 250m
+            memory: 256Mi
+        ports:
+        - containerPort: 8081
+          name: k8spring
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: springboot
+  labels:
+    name: springboot
+spec:
+  ports:
+    - port: 8081
+      targetPort: 8081
+      protocol: TCP
+  selector:
+    app: springboot
+  type: LoadBalancer
+  
+---
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: springboot
+spec:
+  backoffLimit: 5
+  activeDeadlineSeconds: 100
+  template:
+    spec:
+      containers:
+      - name: springboot
+        image: k8spring
+      restartPolicy: OnFailure  
